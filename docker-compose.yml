@@ -14,7 +14,8 @@ services:
     image: grafana/grafana
     environment:
       - GF_INSTALL_PLUGINS=frser-sqlite-datasource
-    ports: -3000:3000
+    ports:
+      - 3000:3000
     volumes:
       - database:/data
     restart: always
