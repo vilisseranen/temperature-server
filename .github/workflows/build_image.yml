@@ -26,7 +26,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          builder: ${{ secrets.DOCKER_HUB_USERNAME }}/${GITHUB_REPOSITORY#*/}
+          builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
