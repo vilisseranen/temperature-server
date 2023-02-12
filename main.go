@@ -84,6 +84,8 @@ func waitForSubscription(topic string, t mqtt.Token) {
 
 func main() {
 
+	fmt.Printf("Starting\n")
+
 	h := NewHandler()
 	defer h.Close()
 
@@ -93,7 +95,7 @@ func main() {
 	}
 
 	opts := mqtt.NewClientOptions()
-	opts.AddBroker("tcp://" + broker + ":1883")
+	opts.AddBroker(broker)
 	opts.SetClientID(CLIENTID)
 
 	opts.SetOrderMatters(false)
@@ -131,6 +133,7 @@ func main() {
 	client.AddRoute(TOPIC_TEMPERATURE, h.handleTemperature)
 	client.AddRoute(TOPIC_HUMIDITY, h.handleHumidity)
 
+	fmt.Printf("Connecting to %s\n", broker)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
@@ -146,20 +149,4 @@ func main() {
 	client.Disconnect(1000)
 	fmt.Println("shutdown complete")
 
-	// Create
-	// db.Create(&Temperature{TS: "D42", value: 100, })
-
-	// // Read
-	// var product Product
-	// db.First(&product, 1)                 // find product with integer primary key
-	// db.First(&product, "code = ?", "D42") // find product with code D42
-
-	// // Update - update product's price to 200
-	// db.Model(&product).Update("Price", 200)
-	// // Update - update multiple fields
-	// db.Model(&product).Updates(Product{Price: 200, Code: "F42"}) // non-zero fields
-	// db.Model(&product).Updates(map[string]interface{}{"Price": 200, "Code": "F42"})
-
-	// // Delete - delete product
-	// db.Delete(&product, 1)
 }
