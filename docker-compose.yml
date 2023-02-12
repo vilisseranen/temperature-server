@@ -26,6 +26,8 @@ services:
       - BROKER=nanomq
     volumes:
       - database:/data
+    networks:
+      - mqtt
     restart: always
 
 networks:
