@@ -20,7 +20,7 @@ services:
     restart: always
   sqlite-logger:
     container_name: sqlite-logger
-    image: xxx
+    image: vilisseranen/temperature-server
     volumes:
       - database:/data
     restart: always
