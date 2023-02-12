@@ -41,7 +41,7 @@ type Humidity struct {
 }
 
 func NewHandler() *handler {
-	db, err := gorm.Open(sqlite.Open("sensors.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(DATABASE), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
