@@ -34,4 +34,4 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ GITHUB_REPOSITORY }}:latest,${{ GITHUB_REPOSITORY }}:${{ GITHUB_SHAsha }}
+          tags: ${{ github.repository }}:latest,${{ github.repository }}:${{ github.sha }}
