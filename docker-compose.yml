@@ -1,0 +1,31 @@
+version: '3.4'
+
+services:
+  nanomq:
+    container_name: nanomq
+    image: emqx/nanomq
+    ports:
+      - 1883:1883
+    networks:
+      - mqtt
+    restart: always
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    environment:
+      - GF_INSTALL_PLUGINS=frser-sqlite-datasource
+    ports: -3000:3000
+    volumes:
+      - database:/data
+    restart: always
+  sqlite-logger:
+    container_name: sqlite-logger
+    image: xxx
+    volumes:
+      - database:/data
+    restart: always
+
+networks:
+  mqtt:
+volumes:
+  database:
