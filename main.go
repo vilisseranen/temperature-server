@@ -18,7 +18,6 @@ const (
 	TOPIC_TEMPERATURE = "temperature"
 	TOPIC_HUMIDITY    = "humidity"
 	QOS               = 1
-	SERVERADDRESS     = "tcp://localhost:1883"
 	CLIENTID          = "sqlite-logger"
 
 	DATABASE = "/data/temperature.db"
@@ -88,8 +87,13 @@ func main() {
 	h := NewHandler()
 	defer h.Close()
 
+	broker, broker_defined := os.LookupEnv("BROKER")
+	if !broker_defined {
+		panic("Please specify a mqtt broker")
+	}
+
 	opts := mqtt.NewClientOptions()
-	opts.AddBroker(SERVERADDRESS)
+	opts.AddBroker("tcp://" + broker + ":1883")
 	opts.SetClientID(CLIENTID)
 
 	opts.SetOrderMatters(false)

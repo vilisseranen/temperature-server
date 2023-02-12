@@ -22,6 +22,8 @@ services:
   sqlite-logger:
     container_name: sqlite-logger
     image: vilisseranen/temperature-server
+    environment:
+      - BROKER=nanomq
     volumes:
       - database:/data
     restart: always
