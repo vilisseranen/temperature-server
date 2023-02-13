@@ -15,9 +15,7 @@ ARG TARGETOS
 ARG TARGETARCH
 
 RUN if [ "${TARGETARCH}" = "arm64" ]; then CC=/aarch64-linux-musl-cross/bin/aarch64-linux-musl-gcc; fi && \
-    env GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1 CC=$CC go build -o /import -v
-
-RUN go build -o /import -v -ldflags="-extldflags=-static"
+    env GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=1 CC=$CC go build -o /import -v -ldflags="-extldflags=-static"
 
 FROM scratch
 
