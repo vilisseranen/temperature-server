@@ -18,6 +18,8 @@ services:
       - 3000:3000
     volumes:
       - database:/data
+      - grafana_etc:/etc/grafana
+      - grafana_var_lib:/var/lib/grafana
     restart: always
   sqlite-logger:
     container_name: sqlite-logger
@@ -34,3 +36,5 @@ networks:
   mqtt:
 volumes:
   database:
+  grafana_etc:
+  grafana_var_lib:
