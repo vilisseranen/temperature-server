@@ -23,7 +23,7 @@ services:
     container_name: sqlite-logger
     image: vilisseranen/temperature-server
     environment:
-      - BROKER=nanomq
+      - BROKER=tcp://nanomq:1883
     volumes:
       - database:/data
     networks:
