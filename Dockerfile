@@ -1,4 +1,4 @@
-ARG BUILDPLATFORM
+# ARG BUILDPLATFORM
 
 FROM --platform=$BUILDPLATFORM golang:1.16-alpine as builder
 
