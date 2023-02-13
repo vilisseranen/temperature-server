@@ -4,7 +4,7 @@ FROM --platform=$BUILDPLATFORM golang:1.16-alpine as builder
 
 #RUN apt-get update && apt-get install -y gcc-aarch64-linux-gnu
 
-RUN apk add gcc g++
+RUN apk add gcc g++ aarch64-linux-musl-gcc
 
 COPY . $GOPATH/src/github.com/vilisseranen/temperature-server
 WORKDIR $GOPATH/src/github.com/vilisseranen/temperature-server
