@@ -20,7 +20,7 @@ const (
 	QOS               = 1
 	CLIENTID          = "sqlite-logger"
 
-	DATABASE = "/data/temperature.db"
+	DATABASE = "/data/sensors.db"
 )
 
 type handler struct {
