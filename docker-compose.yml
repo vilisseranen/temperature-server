@@ -14,18 +14,27 @@ services:
     image: grafana/grafana
     environment:
       - GF_INSTALL_PLUGINS=frser-sqlite-datasource
-    ports: -3000:3000
+    ports:
+      - 3000:3000
     volumes:
       - database:/data
+      - grafana_etc:/etc/grafana
+      - grafana_var_lib:/var/lib/grafana
     restart: always
   sqlite-logger:
     container_name: sqlite-logger
     image: vilisseranen/temperature-server
+    environment:
+      - BROKER=tcp://nanomq:1883
     volumes:
       - database:/data
+    networks:
+      - mqtt
     restart: always
 
 networks:
   mqtt:
 volumes:
   database:
+  grafana_etc:
+  grafana_var_lib:

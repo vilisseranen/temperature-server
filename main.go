@@ -18,10 +18,9 @@ const (
 	TOPIC_TEMPERATURE = "temperature"
 	TOPIC_HUMIDITY    = "humidity"
 	QOS               = 1
-	SERVERADDRESS     = "tcp://localhost:1883"
 	CLIENTID          = "sqlite-logger"
 
-	DATABASE = "/data/temperature.db"
+	DATABASE = "/data/sensors.db"
 )
 
 type handler struct {
@@ -41,7 +40,7 @@ type Humidity struct {
 }
 
 func NewHandler() *handler {
-	db, err := gorm.Open(sqlite.Open("sensors.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(DATABASE), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -85,11 +84,18 @@ func waitForSubscription(topic string, t mqtt.Token) {
 
 func main() {
 
+	fmt.Printf("Starting\n")
+
 	h := NewHandler()
 	defer h.Close()
 
+	broker, broker_defined := os.LookupEnv("BROKER")
+	if !broker_defined {
+		panic("Please specify a mqtt broker")
+	}
+
 	opts := mqtt.NewClientOptions()
-	opts.AddBroker(SERVERADDRESS)
+	opts.AddBroker(broker)
 	opts.SetClientID(CLIENTID)
 
 	opts.SetOrderMatters(false)
@@ -127,6 +133,7 @@ func main() {
 	client.AddRoute(TOPIC_TEMPERATURE, h.handleTemperature)
 	client.AddRoute(TOPIC_HUMIDITY, h.handleHumidity)
 
+	fmt.Printf("Connecting to %s\n", broker)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
@@ -142,20 +149,4 @@ func main() {
 	client.Disconnect(1000)
 	fmt.Println("shutdown complete")
 
-	// Create
-	// db.Create(&Temperature{TS: "D42", value: 100, })
-
-	// // Read
-	// var product Product
-	// db.First(&product, 1)                 // find product with integer primary key
-	// db.First(&product, "code = ?", "D42") // find product with code D42
-
-	// // Update - update product's price to 200
-	// db.Model(&product).Update("Price", 200)
-	// // Update - update multiple fields
-	// db.Model(&product).Updates(Product{Price: 200, Code: "F42"}) // non-zero fields
-	// db.Model(&product).Updates(map[string]interface{}{"Price": 200, "Code": "F42"})
-
-	// // Delete - delete product
-	// db.Delete(&product, 1)
 }
