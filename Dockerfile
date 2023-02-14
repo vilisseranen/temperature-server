@@ -1,8 +1,4 @@
-# ARG BUILDPLATFORM
-
 FROM --platform=$BUILDPLATFORM golang:1.16-alpine as builder
-
-#RUN apt-get update && apt-get install -y gcc-aarch64-linux-gnu
 
 RUN apk add gcc g++
 RUN wget -P / https://musl.cc/aarch64-linux-musl-cross.tgz
