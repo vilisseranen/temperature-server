@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.16-alpine as builder
+FROM --platform=$BUILDPLATFORM golang:1.20-alpine as builder
 
 RUN apk add gcc g++
 RUN wget -P / https://musl.cc/aarch64-linux-musl-cross.tgz
