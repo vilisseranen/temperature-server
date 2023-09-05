@@ -87,17 +87,22 @@ func (o *handler) handleSensorMetric(_ mqtt.Client, msg mqtt.Message) {
 	}
 	fmt.Printf("received message: %s on topic %s\n", msg.Payload(), msg.Topic())
 
-	req, err := http.NewRequest(http.MethodPost, TSDB_URL, bytes.NewBuffer(msg.Payload()))
+	tsdb_payload, err := d.MarshalJSON()
 	if err != nil {
-		fmt.Printf("Cannot prepare request to TSDB at %s with content %s -  error: %s\n", TSDB_URL, msg.Payload(), err.Error())
+		fmt.Printf("Invalid TSDB data point. Error: %s\n", err.Error())
+	}
+
+	req, err := http.NewRequest(http.MethodPost, TSDB_URL, bytes.NewBuffer(tsdb_payload))
+	if err != nil {
+		fmt.Printf("Cannot prepare request to TSDB at %s with content %s -  error: %s\n", TSDB_URL, tsdb_payload, err.Error())
 	}
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("Cannot write %s to TSDB - error: %s\n", msg.Payload(), err.Error())
+		fmt.Printf("Cannot write %s to TSDB - error: %s\n", tsdb_payload, err.Error())
 	} else if resp.StatusCode != 200 {
-		fmt.Printf("Cannot write %s to TSDB (%d)\n", msg.Payload(), resp.StatusCode)
+		fmt.Printf("Cannot write %s to TSDB (%d)\n", tsdb_payload, resp.StatusCode)
 	}
 	defer resp.Body.Close()
 
