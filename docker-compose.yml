@@ -21,8 +21,8 @@ services:
       - grafana_etc:/etc/grafana
       - grafana_var_lib:/var/lib/grafana
     restart: always
-  sqlite-logger:
-    container_name: sqlite-logger
+  data-logger:
+    container_name: data-logger
     image: vilisseranen/temperature-server
     environment:
       - BROKER=tcp://nanomq:1883
