@@ -90,21 +90,25 @@ func (o *handler) handleSensorMetric(_ mqtt.Client, msg mqtt.Message) {
 	tsdb_payload, err := d.MarshalJSON()
 	if err != nil {
 		fmt.Printf("Invalid TSDB data point. Error: %s\n", err.Error())
+		return
 	}
 
 	req, err := http.NewRequest(http.MethodPost, TSDB_URL, bytes.NewBuffer(tsdb_payload))
 	if err != nil {
 		fmt.Printf("Cannot prepare request to TSDB at %s with content %s -  error: %s\n", TSDB_URL, tsdb_payload, err.Error())
+		return
 	}
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("Cannot write %s to TSDB - error: %s\n", tsdb_payload, err.Error())
-	} else if resp.StatusCode != 200 {
-		fmt.Printf("Cannot write %s to TSDB (%d)\n", tsdb_payload, resp.StatusCode)
+		return
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		fmt.Printf("Cannot write %s to TSDB (%d)\n", tsdb_payload, resp.StatusCode)
+	}
 
 }
 
