@@ -1,6 +1,7 @@
 version: '3.4'
 
 services:
+
   nanomq:
     container_name: nanomq
     image: emqx/nanomq
@@ -9,6 +10,7 @@ services:
     networks:
       - mqtt
     restart: always
+
   grafana:
     container_name: grafana
     image: grafana/grafana
@@ -20,7 +22,18 @@ services:
       - database:/data
       - grafana_etc:/etc/grafana
       - grafana_var_lib:/var/lib/grafana
+    networks:
+      - grafana
     restart: always
+
+  ticktock:
+    container_name: database
+    image: vilisseranen/ticktock
+    networks:
+      - grafana
+    volumes:
+      - database:/var/lib/ticktock/data
+
   sqlite-logger:
     container_name: sqlite-logger
     image: vilisseranen/temperature-server
@@ -34,6 +47,7 @@ services:
 
 networks:
   mqtt:
+  grafana:
 volumes:
   database:
   grafana_etc:

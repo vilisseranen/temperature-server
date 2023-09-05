@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,16 +13,19 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	tsdb "bosun.org/opentsdb"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
 	TOPIC_TEMPERATURE = "temperature"
 	TOPIC_HUMIDITY    = "humidity"
+	TOPIC_SENSORS     = "sensors"
 	QOS               = 1
-	CLIENTID          = "sqlite-logger"
+	CLIENTID          = "data-logger"
 
 	DATABASE = "/data/sensors.db"
+	TSDB_URL = "http://database:6182/api/put"
 )
 
 type handler struct {
@@ -73,6 +78,31 @@ func (o *handler) handleHumidity(_ mqtt.Client, msg mqtt.Message) {
 	o.db.Create(&h)
 }
 
+func (o *handler) handleSensorMetric(_ mqtt.Client, msg mqtt.Message) {
+	// We extract the count and write that out first to simplify checking for missing values
+	var d tsdb.DataPoint
+	if err := json.Unmarshal(msg.Payload(), &d); err != nil {
+		fmt.Printf("Message could not be parsed (%s): %s", msg.Payload(), err)
+		return
+	}
+	fmt.Printf("received message: %s on topic %s\n", msg.Payload(), msg.Topic())
+
+	req, err := http.NewRequest(http.MethodPost, TSDB_URL, bytes.NewBuffer(msg.Payload()))
+	if err != nil {
+		fmt.Printf("Cannot prepare request to TSDB at %s with content %s -  error: %s\n", TSDB_URL, msg.Payload(), err.Error())
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Cannot write %s to TSDB - error: %s\n", msg.Payload(), err.Error())
+	} else if resp.StatusCode != 200 {
+		fmt.Printf("Cannot write %s to TSDB (%d)\n", msg.Payload(), resp.StatusCode)
+	}
+	defer resp.Body.Close()
+
+}
+
 func waitForSubscription(topic string, t mqtt.Token) {
 	<-t.Done()
 	if t.Error() != nil {
@@ -122,6 +152,8 @@ func main() {
 		go waitForSubscription(TOPIC_TEMPERATURE, t)
 		t = c.Subscribe(TOPIC_HUMIDITY, QOS, h.handleHumidity)
 		go waitForSubscription(TOPIC_HUMIDITY, t)
+		t = c.Subscribe(TOPIC_SENSORS, QOS, h.handleSensorMetric)
+		go waitForSubscription(TOPIC_SENSORS, t)
 
 	}
 	opts.OnReconnecting = func(mqtt.Client, *mqtt.ClientOptions) {
