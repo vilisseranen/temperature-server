@@ -32,7 +32,7 @@ services:
     networks:
       - grafana
     volumes:
-      - database:/var/lib/ticktock/data
+      - database:/var/lib/ticktock
 
   sqlite-logger:
     container_name: sqlite-logger
