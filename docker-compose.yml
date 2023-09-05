@@ -34,8 +34,8 @@ services:
     volumes:
       - database:/var/lib/ticktock
 
-  sqlite-logger:
-    container_name: sqlite-logger
+  data-logger:
+    container_name: data-logger
     image: vilisseranen/temperature-server
     environment:
       - BROKER=tcp://nanomq:1883
