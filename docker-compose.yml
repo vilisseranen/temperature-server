@@ -33,7 +33,7 @@ services:
       - grafana
       - data
     volumes:
-      - database:/var/lib/ticktock
+      - ticktock:/var/lib/ticktock
 
   data-logger:
     container_name: data-logger
@@ -52,6 +52,7 @@ networks:
   grafana:
   data:
 volumes:
+  ticktock:
   database:
   grafana_etc:
   grafana_var_lib:
