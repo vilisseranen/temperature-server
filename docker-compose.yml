@@ -14,12 +14,9 @@ services:
   grafana:
     container_name: grafana
     image: grafana/grafana
-    environment:
-      - GF_INSTALL_PLUGINS=frser-sqlite-datasource
     ports:
       - 3000:3000
     volumes:
-      - database:/data
       - grafana_etc:/etc/grafana
       - grafana_var_lib:/var/lib/grafana
     networks:
@@ -38,10 +35,11 @@ services:
   data-logger:
     container_name: data-logger
     image: vilisseranen/temperature-server
+    depends_on:
+      - ticktock
+      - nanomq
     environment:
       - BROKER=tcp://nanomq:1883
-    volumes:
-      - database:/data
     networks:
       - mqtt
       - data
@@ -53,6 +51,5 @@ networks:
   data:
 volumes:
   ticktock:
-  database:
   grafana_etc:
   grafana_var_lib:

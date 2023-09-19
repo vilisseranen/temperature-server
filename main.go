@@ -10,75 +10,19 @@ import (
 	"syscall"
 	"time"
 
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-
 	tsdb "bosun.org/opentsdb"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
-	TOPIC_TEMPERATURE = "temperature"
-	TOPIC_HUMIDITY    = "humidity"
-	TOPIC_SENSORS     = "sensors"
-	QOS               = 1
-	CLIENTID          = "data-logger"
+	TOPIC_SENSORS = "sensors"
+	QOS           = 1
+	CLIENTID      = "data-logger"
 
-	DATABASE = "/data/sensors.db"
 	TSDB_URL = "http://database:6182/api/put"
 )
 
-type handler struct {
-	db *gorm.DB
-}
-
-type Temperature struct {
-	TS     uint    // timestamp
-	Value  float32 // value in celcius
-	Source string  // device where the value comes from
-}
-
-type Humidity struct {
-	TS     uint    // timestamp
-	Value  float32 // value in percent
-	Source string  // device where the value comes from
-}
-
-func NewHandler() *handler {
-	db, err := gorm.Open(sqlite.Open(DATABASE), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
-	db.AutoMigrate(&Temperature{}, &Humidity{})
-	return &handler{db: db}
-}
-
-func (o *handler) Close() {
-	db, _ := o.db.DB()
-	db.Close()
-}
-
-func (o *handler) handleTemperature(_ mqtt.Client, msg mqtt.Message) {
-	// We extract the count and write that out first to simplify checking for missing values
-	var t Temperature
-	if err := json.Unmarshal(msg.Payload(), &t); err != nil {
-		fmt.Printf("Message could not be parsed (%s): %s", msg.Payload(), err)
-	}
-	fmt.Printf("received message: %s on topic %s\n", msg.Payload(), msg.Topic())
-	o.db.Create(&t)
-}
-
-func (o *handler) handleHumidity(_ mqtt.Client, msg mqtt.Message) {
-	// We extract the count and write that out first to simplify checking for missing values
-	var h Humidity
-	if err := json.Unmarshal(msg.Payload(), &h); err != nil {
-		fmt.Printf("Message could not be parsed (%s): %s", msg.Payload(), err)
-	}
-	fmt.Printf("received message: %s on topic %s\n", msg.Payload(), msg.Topic())
-	o.db.Create(&h)
-}
-
-func (o *handler) handleSensorMetric(_ mqtt.Client, msg mqtt.Message) {
+func handleSensorMetric(_ mqtt.Client, msg mqtt.Message) {
 	// We extract the count and write that out first to simplify checking for missing values
 	var d tsdb.DataPoint
 	if err := json.Unmarshal(msg.Payload(), &d); err != nil {
@@ -125,9 +69,6 @@ func main() {
 
 	fmt.Printf("Starting\n")
 
-	h := NewHandler()
-	defer h.Close()
-
 	broker, broker_defined := os.LookupEnv("BROKER")
 	if !broker_defined {
 		panic("Please specify a mqtt broker")
@@ -157,11 +98,7 @@ func main() {
 	opts.OnConnect = func(c mqtt.Client) {
 		fmt.Println("connection established")
 
-		t := c.Subscribe(TOPIC_TEMPERATURE, QOS, h.handleTemperature)
-		go waitForSubscription(TOPIC_TEMPERATURE, t)
-		t = c.Subscribe(TOPIC_HUMIDITY, QOS, h.handleHumidity)
-		go waitForSubscription(TOPIC_HUMIDITY, t)
-		t = c.Subscribe(TOPIC_SENSORS, QOS, h.handleSensorMetric)
+		t := c.Subscribe(TOPIC_SENSORS, QOS, handleSensorMetric)
 		go waitForSubscription(TOPIC_SENSORS, t)
 
 	}
@@ -170,9 +107,6 @@ func main() {
 	}
 
 	client := mqtt.NewClient(opts)
-
-	client.AddRoute(TOPIC_TEMPERATURE, h.handleTemperature)
-	client.AddRoute(TOPIC_HUMIDITY, h.handleHumidity)
 
 	fmt.Printf("Connecting to %s\n", broker)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
