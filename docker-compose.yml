@@ -1,6 +1,7 @@
 version: '3.4'
 
 services:
+
   nanomq:
     container_name: nanomq
     image: emqx/nanomq
@@ -9,32 +10,46 @@ services:
     networks:
       - mqtt
     restart: always
+
   grafana:
     container_name: grafana
     image: grafana/grafana
-    environment:
-      - GF_INSTALL_PLUGINS=frser-sqlite-datasource
     ports:
       - 3000:3000
     volumes:
-      - database:/data
       - grafana_etc:/etc/grafana
       - grafana_var_lib:/var/lib/grafana
+    networks:
+      - grafana
     restart: always
+
+  ticktock:
+    container_name: database
+    image: vilisseranen/ticktock
+    networks:
+      - grafana
+      - data
+    volumes:
+      - ticktock:/var/lib/ticktock
+
   data-logger:
     container_name: data-logger
     image: vilisseranen/temperature-server
+    depends_on:
+      - ticktock
+      - nanomq
     environment:
       - BROKER=tcp://nanomq:1883
-    volumes:
-      - database:/data
     networks:
       - mqtt
+      - data
     restart: always
 
 networks:
   mqtt:
+  grafana:
+  data:
 volumes:
-  database:
+  ticktock:
   grafana_etc:
   grafana_var_lib:
